@@ -1,0 +1,49 @@
+[Unit]
+Description=Prometheus Node Exporter (gameserver)
+Documentation=https://github.com/prometheus/node_exporter
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=node_exporter
+Group=node_exporter
+Restart=always
+RestartSec=5
+
+# Bind to the LAN interface only, not 0.0.0.0.
+# --collector.systemd                          -> node_systemd_unit_state{name,state}
+# --collector.systemd.enable-start-time-metrics-> node_systemd_unit_start_time_seconds
+# --collector.systemd.unit-include             -> which units to enumerate over D-Bus
+#
+# NOTE the regex is a CONVENTION, not a list: any unit named *-server.service is
+# picked up. asa-server, rust-server and sotf-server already match, and so will
+# valheim-server, palworld-server, etc. Name future game units the same way and
+# you never touch this file again. (node_exporter anchors this with ^(?:...)$ .)
+# If gameserver ever gains a NON-game unit ending in -server.service, switch back
+# to an explicit alternation: (asa-server|rust-server|sotf-server|valheim-server)\.service
+ExecStart=/usr/local/bin/node_exporter \
+    --web.listen-address=GAMESERVER_IP:9100 \
+    --collector.systemd \
+    --collector.systemd.enable-start-time-metrics \
+    --collector.systemd.unit-include=.*-server\.service \
+    --no-collector.wifi \
+    --no-collector.infiniband \
+    --no-collector.nfs \
+    --no-collector.nfsd \
+    --no-collector.zfs
+
+# Hardening - node_exporter only ever reads.
+NoNewPrivileges=true
+ProtectHome=yes
+ProtectSystem=strict
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+
+[Install]
+WantedBy=multi-user.target

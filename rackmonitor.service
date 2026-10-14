@@ -1,0 +1,34 @@
+[Unit]
+Description=RackMonitor - analog CRT status display for gameserver
+Wants=network-online.target
+After=network-online.target
+# Don't fight the console for the framebuffer
+Conflicts=getty@tty1.service
+After=getty@tty1.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/rackmonitor
+ExecStartPre=-/bin/sh -c 'echo 0 > /sys/class/graphics/fbcon/cursor_blink'
+ExecStartPre=-/usr/bin/setterm --cursor off --blank 0 --powerdown 0
+ExecStart=/usr/bin/python3 /opt/rackmonitor/monitor.py \
+    --config /opt/rackmonitor/config.ini
+Restart=always
+RestartSec=5
+
+# Give it a real tty so setterm/fbcon behave
+StandardInput=tty
+StandardOutput=journal
+StandardError=journal
+TTYPath=/dev/tty1
+TTYReset=yes
+TTYVHangup=yes
+TTYVTDisallocate=yes
+
+# Nice-to-haves for a display loop
+Nice=-5
+IOSchedulingClass=best-effort
+
+[Install]
+WantedBy=multi-user.target

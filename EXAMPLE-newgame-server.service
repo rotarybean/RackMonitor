@@ -1,0 +1,39 @@
+; =============================================================================
+; TEMPLATE - copy to /etc/systemd/system/<game>-server.service
+;
+; The name MUST end in -server.service so node_exporter's unit-include regex
+; (.*-server\.service) picks it up without any exporter change.
+;
+; ABOUT Conflicts=  --  systemd makes it IMPLICITLY BIDIRECTIONAL. Listing the
+; three existing units here is enough; you do NOT need to go back and edit
+; asa-server / rust-server / sotf-server to mention the new game. systemd adds
+; the reverse edge itself. Adding game #7 is still a one-file change.
+;
+; Verify after `systemctl daemon-reload`:
+;   systemctl show valheim-server.service -p Conflicts
+;   systemctl show rust-server.service    -p ConflictedBy   # <- new game appears here
+; =============================================================================
+
+[Unit]
+Description=Valheim Dedicated Server (Docker)
+Requires=docker.service
+After=docker.service network-online.target
+
+# every OTHER game unit currently on the box
+Conflicts=asa-server.service rust-server.service sotf-server.service
+
+[Service]
+Type=simple
+Restart=on-failure
+RestartSec=10
+
+# Match whatever pattern your existing three units use. If they're compose-based:
+WorkingDirectory=/opt/gameservers/valheim
+ExecStart=/usr/bin/docker compose up
+ExecStop=/usr/bin/docker compose down
+
+# Game servers need a generous stop window to flush their world save.
+TimeoutStopSec=120
+
+[Install]
+WantedBy=multi-user.target

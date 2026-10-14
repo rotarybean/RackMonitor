@@ -1,0 +1,31 @@
+# --- your real deployment config (has your LAN IPs/paths) ---
+# Commit config.example.ini instead; copy it to config.ini on each device.
+lepotato/config.ini
+config.ini
+
+# --- artwork ---
+# Game logos (ARK, Rust, Sons of the Forest, ...) are trademarked. Do NOT
+# commit them to a public repo. Everyone supplies their own under assets/.
+# See assets/README.md for the manifest. A background/offline/idle placeholder
+# of your own making is fine to commit if you want; delete the lines below then.
+assets/*.png
+assets/*.jpg
+assets/*.webp
+
+# --- python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# --- editor / OS cruft ---
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# --- test renders from --preview ---
+/tmp_render/
+preview_*.png
+*.preview.png
